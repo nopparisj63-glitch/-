@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>วันครบรอบของหมูๆ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     แก้ไขรูปภาพและข้อความของแต่ละเดือนได้ที่ตัวแปร milestoneMedia
+     ในแท็ก <script> ด้านล่างสุดของไฟล์นี้ (ค้นหาคำว่า "แก้ไขตรงนี้")
+     ============================================================ */
+
+  :root{
+    --void: #0a0410;
+    --nebula-deep: #1c0a2e;
+    --rose: #ff6fa8;
+    --blush: #ffc2de;
+    --fuchsia: #d94ff5;
+    --gold: #ffe3c9;
+    --ink: #fff3fa;
+    --ink-dim: rgba(255,243,250,0.62);
+    --serif: 'Mitr', 'Instrument Serif', serif;
+    --sans: 'Inter', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{
+    width:100%; height:100%;
+    background:var(--void);
+    color:var(--ink);
+    font-family:var(--sans);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--fuchsia); color:#fff; }
+
+  .view{
+    position:fixed; inset:0;
+    opacity:0; visibility:hidden;
+    transition:opacity 1.1s ease, visibility 1.1s;
+    pointer-events:none;
+  }
+  .view.active{
+    opacity:1; visibility:visible;
+    pointer-events:auto;
+  }
+
+  /* ---------- PAGE 1 : GALAXY ---------- */
+  #view-galaxy{ cursor:pointer; }
+  #galaxy-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  /* -- grand opening: theatre curtain reveal -- */
+  #intro-curtain{
+    position:absolute; inset:0; z-index:30;
+    display:flex; pointer-events:none;
+  }
+  #intro-curtain .panel{
+    flex:1 1 50%; height:100%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,194,222,0.06), transparent 60%),
+      linear-gradient(180deg, #150620, #05020a 60%);
+    will-change:transform;
+  }
+  #intro-curtain .panel.left{
+    border-right:1px solid rgba(255,194,222,0.12);
+    animation: curtainLeft 1.5s cubic-bezier(.76,0,.24,1) forwards;
+    animation-delay:.55s;
+  }
+  #intro-curtain .panel.right{
+    border-left:1px solid rgba(255,194,222,0.12);
+    animation: curtainRight 1.5s cubic-bezier(.76,0,.24,1) forwards;
+    animation-delay:.55s;
+  }
+  @keyframes curtainLeft{ to{ transform:translateX(-101%); } }
+  @keyframes curtainRight{ to{ transform:translateX(101%); } }
+
+  /* -- grand opening: ignition flash at center -- */
+  #intro-ignite{
+    position:absolute; top:45%; left:50%; z-index:31;
+    width:6px; height:6px; border-radius:50%;
+    background:#fff; transform:translate(-50%,-50%);
+    box-shadow:0 0 30px 10px rgba(255,255,255,0.9);
+    animation: igniteBurst 1.3s cubic-bezier(.2,.8,.2,1) forwards;
+    animation-delay:.35s;
+    pointer-events:none;
+  }
+  @keyframes igniteBurst{
+    0%{ width:6px; height:6px; opacity:1; box-shadow:0 0 20px 6px rgba(255,255,255,0.9); }
+    35%{ width:340px; height:340px; opacity:0.9; box-shadow:0 0 140px 60px rgba(255,180,220,0.55); }
+    100%{ width:1200px; height:1200px; opacity:0; box-shadow:0 0 0 0 rgba(255,180,220,0); }
+  }
+
+  .galaxy-comets{ position:absolute; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+
+  .galaxy-overlay{
+    position:absolute; inset:0; z-index:5;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:18px;
+    padding-bottom:75vh;
+    background:radial-gradient(ellipse at center, rgba(10,4,16,0) 40%, rgba(10,4,16,0.55) 100%);
+  }
+  @media (max-width:640px){
+    .galaxy-overlay{ padding-bottom:26vh; }
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.42em;
+    text-transform:uppercase; color:var(--ink); opacity:0.62;
+    animation: fadeUp 1.4s ease both 1.95s;
+  }
+  .anniv-title{
+    font-family:var(--serif); font-weight:500; font-style:normal;
+    font-size:clamp(1.7rem, 7.5vw, 4.6rem);
+    letter-spacing:0.02em;
+    color:#ffffff;
+    text-shadow:0 0 30px rgba(255,110,90,0.4);
+    animation: fadeUp 1.8s ease both 2.15s;
+    white-space:nowrap;
+  }
+  .anniv-title-sway{
+    display:inline-block;
+    white-space:nowrap;
+  }
+  .arc-char{
+    display:inline-block;
+    transform: translateY(var(--arc-y, 0)) rotate(var(--arc-rot, 0deg));
+  }
+  .wave-char{
+    display:inline-block;
+    animation: waveFlow 2.2s ease-in-out infinite;
+    animation-delay: calc(4s + var(--i, 0) * 0.08s);
+    will-change:transform;
+  }
+  @keyframes waveFlow{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-11px); }
+  }
+  .anniv-sub{
+    font-family:var(--serif); font-style:normal; font-weight:400;
+    font-size:clamp(0.95rem,2.4vw,1.25rem);
+    color:var(--ink-dim);
+    animation: fadeUp 1.8s ease both 2.4s;
+  }
+  .enter-hint{
+    margin-top:26px;
+    font-family:var(--mono); font-size:11px; letter-spacing:0.28em;
+    text-transform:uppercase; color:var(--ink);
+    animation: pulseHint 2.6s ease-in-out infinite 3.2s, fadeUp 1.8s ease both 2.7s;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes pulseHint{
+    0%,100%{ opacity:0.35; }
+    50%{ opacity:0.95; }
+  }
+
+  /* -- grand transition flash between page 1 and page 2 -- */
+  #transition-flash{
+    position:fixed; inset:0; z-index:9999; pointer-events:none;
+    background:radial-gradient(circle at 50% 42%, #fff, rgba(255,111,168,0.65) 38%, rgba(217,79,245,0.25) 60%, rgba(10,4,16,0) 78%);
+    opacity:0;
+  }
+  #transition-flash.flash{ animation: flashPulse .75s ease forwards; }
+  @keyframes flashPulse{
+    0%{ opacity:0; }
+    18%{ opacity:1; }
+    100%{ opacity:0; }
+  }
+
+  /* -- grand sweet burst when opening a milestone: light + hearts + sparks radiate from the tapped star -- */
+  #click-burst-overlay{
+    position:fixed; inset:0; z-index:9998; overflow:hidden;
+    pointer-events:none;
+  }
+  .cb-flash{
+    position:absolute; border-radius:50%;
+    transform:translate(-50%,-50%);
+    animation: cbFlash .95s cubic-bezier(.16,.8,.24,1) forwards;
+  }
+  @keyframes cbFlash{
+    0%{ width:4px; height:4px; opacity:0.95; }
+    38%{ width:460px; height:460px; opacity:0.85; }
+    100%{ width:1500px; height:1500px; opacity:0; }
+  }
+  .cb-heart{
+    position:absolute; left:0; top:0;
+    transform:translate(-50%,-50%);
+    animation: cbHeart 1.15s cubic-bezier(.19,.75,.28,1) forwards;
+    will-change:transform, opacity;
+    filter:drop-shadow(0 0 6px rgba(255,255,255,0.6));
+  }
+  @keyframes cbHeart{
+    0%{ transform:translate(-50%,-50%) translate(0,0) scale(0.3) rotate(0deg); opacity:0; }
+    16%{ opacity:1; }
+    100%{ transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(1.15) rotate(var(--rot)); opacity:0; }
+  }
+  .cb-spark{
+    position:absolute; left:0; top:0; width:4px; height:4px; border-radius:50%;
+    transform:translate(-50%,-50%);
+    animation: cbSpark 1.05s ease-out forwards;
+  }
+  @keyframes cbSpark{
+    0%{ transform:translate(-50%,-50%) translate(0,0) scale(1); opacity:1; }
+    100%{ transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0.15); opacity:0; }
+  }
+  .cb-ring{
+    position:absolute; border:1px solid rgba(255,255,255,0.65); border-radius:50%;
+    transform:translate(-50%,-50%);
+    animation: cbRing .9s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes cbRing{
+    0%{ width:10px; height:10px; opacity:0.9; }
+    100%{ width:640px; height:640px; opacity:0; }
+  }
+
+  /* ---------- PAGE 2 : TIMELINE ---------- */
+  #view-timeline{
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(217,79,245,0.16), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,111,168,0.12), transparent 60%),
+      var(--nebula-deep);
+    overflow:hidden;
+  }
+  #hearts-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:0.55; }
+
+  .timeline-header{
+    position:relative; z-index:2;
+    text-align:center; padding:7vh 6vw 2vh;
+  }
+  .timeline-header .eyebrow{ animation:none; opacity:0.6; }
+  .timeline-header h2{
+    font-family:var(--serif); font-style:normal; font-weight:400;
+    font-size:clamp(1.7rem,4.5vw,2.7rem);
+    color:#ffffff; margin-top:6px;
+    text-shadow:0 2px 24px rgba(0,0,0,0.35), 0 0 36px rgba(217,79,245,0.28);
+  }
+  .timeline-header p{
+    font-family:var(--sans); font-weight:300; font-size:0.85rem;
+    color:var(--ink-dim); margin-top:10px;
+  }
+
+  /* -- scattered constellation field: buttons float freely across the whole page -- */
+  .constellation-field{
+    position:absolute; inset:0; z-index:2;
+    width:100%; height:100%;
+  }
+
+  .ms-star-wrap{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+    z-index:2;
+  }
+  .ms-star-wrap:hover{ transform:translate(-50%,-50%) translateY(-8px) scale(1.07); z-index:6; }
+  .ms-star-wrap:focus-within{ z-index:6; }
+
+  .ms-star{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; cursor:pointer;
+    font-family:var(--mono); color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+    box-shadow:
+      0 14px 34px -10px var(--glow-color, rgba(217,79,245,0.4)),
+      0 3px 10px rgba(20,8,28,0.18),
+      inset 0 0 20px rgba(255,255,255,0.5),
+      inset 0 -10px 18px rgba(120,40,90,0.08);
+    transition:box-shadow .5s ease, filter .5s ease;
+  }
+  .ms-star-wrap:hover .ms-star{
+    box-shadow:
+      0 18px 42px -8px var(--glow-color, rgba(217,79,245,0.55)),
+      0 4px 14px rgba(20,8,28,0.22),
+      inset 0 0 24px rgba(255,255,255,0.6),
+      inset 0 -10px 18px rgba(120,40,90,0.1);
+    filter:brightness(1.05);
+  }
+  .ms-star-wrap:focus-within .ms-star{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  /* -- grand ambient motion: each star drifts + tilts on its own gentle loop -- */
+  .ms-orbit{
+    animation: msFloat var(--float-dur,7s) ease-in-out infinite;
+    animation-delay: var(--float-delay,0s);
+    will-change: transform;
+  }
+  @keyframes msFloat{
+    0%,100%{ transform: translate(0,0) rotate(0deg); }
+    50%{ transform: translate(var(--float-x,0px), var(--float-y,-10px)) rotate(var(--float-rot,3deg)); }
+  }
+
+  /* -- soft breathing aura behind each star, glowing in its own rhythm -- */
+  .ms-star::before{
+    content:'';
+    position:absolute; inset:-16px;
+    border-radius:inherit;
+    background: radial-gradient(circle, var(--glow-color, rgba(217,79,245,0.4)), transparent 68%);
+    opacity:0.4; z-index:-1; pointer-events:none;
+    animation: msAuraPulse var(--glow-dur,4.5s) ease-in-out infinite;
+    animation-delay: var(--glow-delay,0s);
+  }
+  @keyframes msAuraPulse{
+    0%,100%{ transform:scale(0.88); opacity:0.32; }
+    50%{ transform:scale(1.22); opacity:0.7; }
+  }
+
+  .ms-id{
+    font-weight:600; letter-spacing:0.02em;
+    text-shadow:
+      0 1px 2px rgba(40,10,45,0.85), 0 -1px 2px rgba(40,10,45,0.85),
+      1px 0 2px rgba(40,10,45,0.85), -1px 0 2px rgba(40,10,45,0.85),
+      0 0 8px rgba(40,10,45,0.55);
+    pointer-events:none; transform:rotate(var(--counter-rot, 0deg));
+  }
+
+  .ms-tip{
+    position:absolute; bottom:calc(100% + 12px); left:50%;
+    transform:translateX(-50%) translateY(6px) scale(0.9);
+    padding:6px 12px; border-radius:20px;
+    background:rgba(20,8,28,0.72); backdrop-filter:blur(6px);
+    border:1px solid rgba(255,194,222,0.3);
+    font-family:var(--serif); font-style:normal; font-size:0.85rem;
+    white-space:nowrap; color:var(--ink);
+    opacity:0;
+    transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+  }
+  .ms-star-wrap:hover .ms-tip{ opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+
+  .heart-float{
+    position:absolute; bottom:-40px; color:var(--ink);
+    opacity:0.35; will-change:transform, opacity;
+    animation-name:floatHeart; animation-timing-function:ease-in; animation-iteration-count:infinite;
+  }
+  @keyframes floatHeart{
+    0%{ transform:translateY(0) translateX(0) rotate(0deg); opacity:0; }
+    10%{ opacity:0.55; }
+    50%{ transform:translateY(-52vh) translateX(14px) rotate(12deg); }
+    90%{ opacity:0.35; }
+    100%{ transform:translateY(-105vh) translateX(-10px) rotate(-8deg); opacity:0; }
+  }
+
+  /* -- small organic photo fragments that bloom, hold, then drift up and vanish (loop) -- */
+  .float-photos{ position:absolute; inset:0; z-index:1; overflow:hidden; pointer-events:none; }
+  .float-photo{
+    position:absolute; overflow:hidden; opacity:0;
+    box-shadow:0 12px 28px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.25);
+    background:linear-gradient(155deg, rgba(255,255,255,0.2), rgba(255,111,168,0.08));
+    will-change:transform, opacity;
+  }
+  .float-photo img{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }
+  .float-photo .fp-fallback{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    color:rgba(255,255,255,0.6); font-size:15px;
+  }
+
+  /* ---------- PAGE 3 : DETAIL ---------- */
+  #view-detail{ overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+  .detail-bg{
+    position:fixed; inset:0; z-index:0;
+    transition:background 1s ease;
+  }
+  .detail-deco{
+    position:fixed; inset:0; z-index:1; overflow:hidden; pointer-events:none;
+  }
+  .deco-el{ position:absolute; opacity:0; }
+
+  /* -- small polaroid frames drifting around the edges, never touching the main photo/text -- */
+  .detail-float-photos{
+    position:fixed; inset:0; z-index:1; overflow:hidden; pointer-events:none;
+  }
+  .detail-polaroid{
+    position:absolute;
+    width:clamp(144px, 24vw, 228px);
+    aspect-ratio:4/5;
+    background:#fffaf6;
+    padding:12px 12px 36px 12px;
+    border-radius:10px;
+    box-shadow:0 14px 30px -8px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.25);
+    opacity:0.85;
+    animation: dpDrift var(--dp-dur,9s) ease-in-out infinite;
+    animation-delay: var(--dp-delay,0s);
+    transition: left .85s cubic-bezier(.2,.8,.2,1), right .85s cubic-bezier(.2,.8,.2,1), top .85s cubic-bezier(.2,.8,.2,1), opacity .5s ease;
+    will-change:transform;
+  }
+  .detail-polaroid img,
+  .detail-polaroid video{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; border-radius:3px; background:rgba(0,0,0,0.15); }
+  .detail-polaroid .dp-fallback{
+    width:100%; height:100%; border-radius:2px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, rgba(255,111,168,0.24), rgba(217,79,245,0.12));
+    color:rgba(255,255,255,0.75); font-size:16px;
+  }
+  @keyframes dpDrift{
+    0%,100%{ transform: translate(0,0) rotate(var(--dp-rot,0deg)); }
+    50%{ transform: translate(var(--dp-x,0px), var(--dp-y,-14px)) rotate(calc(var(--dp-rot,0deg) * -1)); }
+  }
+
+  /* -- page 4: the grid of video-capable polaroids, 1.3 years of clips -- */
+  #view-gallery{ overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; }
+  .gallery-bg{
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 120% 65% at 50% 0%, hsla(320,60%,22%,0.85), transparent 65%),
+      linear-gradient(170deg, hsl(300,42%,9%), hsl(300,40%,6%) 80%);
+  }
+  .gallery-header{ position:relative; z-index:2; text-align:center; padding:8vh 6vw 3vh; }
+  .gallery-header h2{
+    font-family:var(--serif); font-weight:400;
+    font-size:clamp(1.5rem, 4.2vw, 2.3rem);
+    color:var(--ink); margin-top:8px;
+  }
+  .gallery-grid{
+    position:relative; z-index:2;
+    display:grid; grid-template-columns:repeat(4, 1fr);
+    gap:clamp(12px, 2.2vw, 24px);
+    max-width:1100px; margin:0 auto;
+    padding:2vh 6vw 12vh;
+  }
+  @media (max-width:640px){
+    .gallery-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+  .gallery-polaroid{
+    position:relative;
+    background:#fffaf6;
+    padding:8px 8px 22px 8px;
+    border-radius:8px;
+    aspect-ratio:4/5;
+    box-shadow:0 14px 30px -8px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.22);
+    transform:rotate(var(--gp-rot,0deg));
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  }
+  .gallery-polaroid:hover{ transform:rotate(0deg) scale(1.045); box-shadow:0 20px 40px -10px rgba(0,0,0,0.55); }
+  .gallery-polaroid img,
+  .gallery-polaroid video{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; border-radius:3px; background:rgba(0,0,0,0.15); }
+  .gallery-polaroid .dp-fallback{
+    width:100%; height:100%; border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, rgba(255,111,168,0.24), rgba(217,79,245,0.12));
+    color:rgba(255,255,255,0.75); font-size:clamp(18px,3vw,26px);
+  }
+
+  /* motif: rings */
+  .motif-rings .ring{
+    border:1px solid rgba(255,255,255,0.25); border-radius:50%;
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    animation:spinRing linear infinite;
+  }
+  @keyframes spinRing{ from{ transform:translate(-50%,-50%) rotate(0deg);} to{ transform:translate(-50%,-50%) rotate(360deg);} }
+
+  /* motif: petals */
+  .motif-petals .petal{
+    top:-8%; border-radius:50% 0 50% 50%;
+    animation:petalFall linear infinite;
+  }
+  @keyframes petalFall{
+    0%{ transform:translateY(0) rotate(0deg); opacity:0; }
+    8%{ opacity:0.8; }
+    100%{ transform:translateY(120vh) rotate(320deg); opacity:0; }
+  }
+
+  /* motif: comet */
+  .motif-comet .comet{
+    width:2px; height:2px; border-radius:50%;
+    box-shadow:0 0 0 rgba(255,255,255,0);
+    animation:cometMove linear infinite;
+  }
+  @keyframes cometMove{
+    0%{ transform:translate(-10vw,-10vh); opacity:0; }
+    5%{ opacity:1; }
+    60%{ opacity:0.9; }
+    100%{ transform:translate(120vw,90vh); opacity:0; }
+  }
+
+  /* motif: aurora */
+  .motif-aurora .wave{
+    left:-10%; width:120%; height:38%;
+    filter:blur(30px); border-radius:50%;
+    animation:auroraDrift ease-in-out infinite alternate;
+  }
+  @keyframes auroraDrift{
+    from{ transform:translateX(-4%) scaleY(1); }
+    to{ transform:translateX(4%) scaleY(1.15); }
+  }
+
+  /* motif: sparkle */
+  .motif-sparkle .spark{
+    width:3px; height:3px; border-radius:50%; background:#fff;
+    animation:sparkleTwinkle ease-in-out infinite;
+  }
+  @keyframes sparkleTwinkle{
+    0%,100%{ opacity:0.15; transform:scale(1); }
+    50%{ opacity:1; transform:scale(2.4); }
+  }
+
+  .detail-viewport{
+    position:relative; z-index:2;
+    width:100%; min-height:100%;
+    perspective:1400px;
+  }
+  .detail-content{
+    position:relative; z-index:2;
+    width:100%; min-height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:8vh 6vw;
+    text-align:center;
+  }
+  .detail-content.leaving{ animation:cardOut .55s cubic-bezier(.4,0,.7,1) forwards; }
+  .detail-content.entering{ animation:cardIn .72s cubic-bezier(.16,.8,.24,1) forwards; }
+  .detail-card{
+    display:flex; flex-direction:column; align-items:center; gap:22px;
+    width:100%; max-width:min(92vw, 640px);
+    box-sizing:border-box;
+  }
+  @keyframes cardOut{
+    to{
+      opacity:0;
+      transform: translateX(var(--nav-out-x,-60px)) translateZ(-180px) rotateY(var(--nav-out-rot,-8deg)) scale(0.92);
+      filter: blur(6px);
+    }
+  }
+  @keyframes cardIn{
+    from{
+      opacity:0;
+      transform: translateX(var(--nav-in-x,60px)) translateZ(-180px) rotateY(var(--nav-in-rot,8deg)) scale(0.92);
+      filter: blur(6px);
+    }
+    to{ opacity:1; transform: translateX(0) translateZ(0) rotateY(0deg) scale(1); filter:blur(0); }
+  }
+
+  /* -- directional sweep of light + sparks when moving to the next/previous milestone -- */
+  .nv-beam{
+    position:fixed; top:0; left:0; width:360px; height:130px;
+    filter:blur(16px); opacity:0.9; z-index:9998;
+    animation: nvSweep .8s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  .nv-spark{
+    position:fixed; top:0; left:0; width:4px; height:4px; border-radius:50%;
+    box-shadow:0 0 10px 3px currentColor; opacity:1; z-index:9998;
+    animation: nvSweep .85s ease-out forwards;
+  }
+  @keyframes nvSweep{
+    to{ transform: translateX(var(--sweep-dx,0px)); opacity:0; }
+  }
+
+  .detail-milestone{
+    font-family:var(--serif); font-style:normal; font-weight:400;
+    font-size:clamp(1.6rem, 6vw, 3.6rem); color:#ffffff;
+    text-shadow:0 2px 24px rgba(0,0,0,0.35), 0 0 36px rgba(217,79,245,0.28);
+    max-width:min(92vw, 700px); width:100%;
+    overflow-wrap:break-word; word-break:break-word; box-sizing:border-box;
+  }
+
+  .photo-frame{
+    display:block; line-height:0;
+    width:min(78vw, 300px); aspect-ratio:4/5;
+    max-width:min(82vw, 380px); max-height:44vh;
+    border-radius:14px; overflow:hidden; position:relative;
+    border:1px solid rgba(255,255,255,0.35);
+    box-shadow:0 20px 60px rgba(0,0,0,0.45), 0 0 0 6px rgba(255,255,255,0.04);
+    background:linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.02));
+    transition:width .3s ease, height .3s ease;
+  }
+  .photo-frame img{
+    display:block;
+    width:100%; height:100%;
+    object-fit:contain;
+  }
+  .photo-placeholder{
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px;
+    color:rgba(255,255,255,0.55); font-family:var(--mono); font-size:11px;
+    letter-spacing:0.08em; text-align:center; padding:20px;
+  }
+  .photo-placeholder svg{ opacity:0.6; }
+
+  .detail-text{
+    max-width:min(92vw, 560px); width:100%; box-sizing:border-box;
+    overflow-wrap:break-word; word-break:break-word;
+    font-family:var(--serif); font-style:normal; font-weight:400;
+    font-size:clamp(1.05rem, 2.6vw, 1.4rem); line-height:1.65; color:var(--ink);
+    text-shadow:0 2px 16px rgba(0,0,0,0.3);
+  }
+
+  .detail-nav{
+    display:flex; align-items:center; gap:16px; margin-top:6px;
+  }
+  .nav-btn{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.16em;
+    text-transform:uppercase; color:var(--ink);
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.35);
+    padding:12px 22px; border-radius:30px; cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
+  }
+  .nav-btn:hover{ background:rgba(255,255,255,0.18); transform:translateY(-2px); box-shadow:0 8px 24px rgba(217,79,245,0.35); }
+  .nav-btn.primary{
+    background:linear-gradient(120deg, var(--rose), var(--fuchsia));
+    border:none; color:var(--ink); font-weight:700;
+    text-shadow:0 1px 4px rgba(40,10,45,0.4);
+  }
+  .nav-btn.primary:hover{ box-shadow:0 10px 30px rgba(255,111,168,0.55); }
+  .nav-btn:disabled{ opacity:0.35; cursor:default; transform:none; box-shadow:none; }
+
+  .back-link{
+    position:absolute; top:22px; left:22px; z-index:3;
+    font-family:var(--mono); font-size:11px; letter-spacing:0.1em;
+    color:var(--ink-dim); background:rgba(0,0,0,0.25);
+    border:1px solid rgba(255,255,255,0.2); padding:9px 16px; border-radius:20px;
+    cursor:pointer; transition:opacity .3s ease, background .3s ease;
+  }
+  .back-link:hover{ background:rgba(0,0,0,0.4); color:var(--ink); }
+
+  /* -- title tracks above the ever-growing galaxy, with a soft non-stiff wobble -- */
+  .anniv-title-stage{
+    display:inline-block;
+    will-change:transform;
+    padding:16px 30px;
+    border-radius:999px;
+    background:radial-gradient(ellipse at center, rgba(255,110,90,0.4) 0%, rgba(140,30,60,0.22) 50%, rgba(140,30,60,0) 78%);
+  }
+
+  /* -- page 1: medium hearts that bloom around the screen after 15s (minimal outline style) -- */
+  .float-heart{
+    position:absolute; z-index:8; cursor:pointer;
+    width: var(--fh-size, 44px); height: var(--fh-size, 44px);
+    color: var(--blush);
+    opacity:0.88;
+    filter: drop-shadow(0 0 8px rgba(255,194,222,0.35));
+    transform: translate(-50%,-50%);
+    line-height:1; user-select:none; -webkit-user-select:none;
+  }
+  .float-heart svg{ width:100%; height:100%; display:block; }
+  @keyframes fhFadeIn{
+    from{ opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    to{ opacity:0.88; transform:translate(-50%,-50%) scale(1); }
+  }
+  @keyframes fhBob{
+    0%,100%{ transform:translate(-50%,-50%) translateY(0) scale(1); }
+    50%{ transform:translate(-50%,-50%) translateY(-10px) scale(1.03); }
+  }
+  .float-heart.fh-leaving{
+    transition: opacity .7s ease, transform .7s ease;
+    opacity:0 !important;
+    transform: translate(-50%,-50%) translateY(-20px) scale(0.6) !important;
+  }
+
+  /* -- page 1: the loop of little messages that pop up when a heart is tapped -- */
+  #love-msg-layer{
+    position:fixed; inset:0; z-index:9999; overflow:hidden; pointer-events:none;
+  }
+  .love-msg{
+    position:absolute; z-index:9999; pointer-events:none;
+    font-family:var(--serif); font-weight:400;
+    font-size:clamp(1.05rem, 3vw, 1.55rem);
+    color:var(--ink); white-space:nowrap;
+    text-shadow:0 0 20px rgba(255,111,168,0.9), 0 0 8px rgba(255,255,255,0.65);
+    animation: loveMsgPop 6.8s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  @keyframes loveMsgPop{
+    0%{ transform:translate(-50%,-50%) scale(0.35) translateY(0); opacity:0; }
+    8%{ transform:translate(-50%,-50%) scale(1.12) translateY(-8px); opacity:1; }
+    15%{ transform:translate(-50%,-50%) scale(1) translateY(-14px); opacity:1; }
+    85%{ transform:translate(-50%,-50%) scale(1) translateY(-14px); opacity:1; }   /* ค้างไว้ราว 5 วินาที */
+    100%{ transform:translate(-50%,-50%) scale(1) translateY(-52px); opacity:0; }  /* ค่อยๆ จางหายไปช้าๆ */
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ หน้าที่ 1 : กาแล็คซี ============ -->
+  <section id="view-galaxy" class="view active">
+    <canvas id="galaxy-canvas"></canvas>
+    <div class="galaxy-comets" id="galaxy-comets"></div>
+    <div id="intro-ignite"></div>
+    <div id="intro-curtain"><div class="panel left"></div><div class="panel right"></div></div>
+    <div class="galaxy-overlay">
+      <div class="anniv-title-stage" id="anniv-title-stage">
+        <h1 class="anniv-title"><span class="anniv-title-sway">วันครบรอบ 1.3Y</span></h1>
+      </div>
+    </div>
+  </section>
+
+  <div id="transition-flash"></div>
+  <div id="click-burst-overlay"></div>
+  <div id="love-msg-layer"></div>
+
+  <!-- ============ หน้าที่ 2 : ไทม์ไลน์ ============ -->
+  <section id="view-timeline" class="view">
+    <canvas id="hearts-canvas"></canvas>
+    <div class="float-photos" id="float-photos"></div>
+    <div class="timeline-header">
+      <h2>หมูจะกดอันไหนก่อนน้าา</h2>
+    </div>
+    <div class="constellation-field" id="timeline-track"><!-- สร้างด้วย JS: ปุ่มกระจายทั่วหน้าเว็บแบบสุ่ม --></div>
+  </section>
+
+  <!-- ============ หน้าที่ 3 : รายละเอียดแต่ละช่วงเวลา ============ -->
+  <section id="view-detail" class="view">
+    <div class="detail-bg" id="detail-bg"></div>
+    <div class="detail-deco" id="detail-deco"></div>
+    <div class="detail-float-photos" id="detail-float-photos"></div>
+    <div class="back-link" id="back-to-timeline">← กลับหน้าแรก</div>
+    <div class="detail-viewport">
+      <div class="detail-content" id="detail-content">
+        <div class="detail-card">
+          <h2 class="detail-milestone" id="detail-milestone">1 เดือน</h2>
+          <div class="photo-frame" id="photo-frame"></div>
+          <p class="detail-text" id="detail-text"></p>
+          <div class="detail-nav">
+            <button class="nav-btn" id="btn-prev">← ก่อนหน้า</button>
+            <button class="nav-btn primary" id="btn-next">ถัดไป →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ หน้าที่ 4 : คลังคลิปวิดีโอ 1.3 ปีของเรา ============ -->
+  <section id="view-gallery" class="view">
+    <div class="gallery-bg"></div>
+    <div class="back-link" id="back-to-detail-from-gallery">← กลับ</div>
+    <div class="gallery-header">
+      <div class="eyebrow">อย่าคิดว่าไม่รักเลยนะ</div>
+      <h2>เค้าถ่ายเธอตลอด</h2>
+    </div>
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+
+  /* -- แยกคำว่า "วันครบรอบ 1.3Y" เป็นตัวอักษรทีละตัว จัดให้โค้งพอประมาณ แล้วทำ animation คลื่นไหลแบบธรรมชาติ -- */
+  (function splitTitleIntoWaveChars(){
+    const el = document.querySelector('.anniv-title-sway');
+    if(!el) return;
+    const text = el.textContent;
+    const graphemes = (typeof Intl !== 'undefined' && Intl.Segmenter)
+      ? Array.from(new Intl.Segmenter('th', {granularity:'grapheme'}).segment(text), s => s.segment)
+      : Array.from(text);
+    el.textContent = '';
+    const frag = document.createDocumentFragment();
+    const n = graphemes.length;
+    const mid = (n - 1) / 2;
+    const ARC_LIFT = 16;   // px ยกขึ้นตรงกลางมากสุด (ความโค้ง)
+    const ARC_TILT = 9;    // deg เอียงปลายทั้งสองข้างมากสุด
+    graphemes.forEach((ch, i) => {
+      const t = mid > 0 ? (i - mid) / mid : 0; // -1 .. 1
+      const lift = ARC_LIFT * (1 - t * t);     // โค้งขึ้นตรงกลาง อ่อนลงที่ปลาย
+      const tilt = t * ARC_TILT;
+
+      const arc = document.createElement('span');
+      arc.className = 'arc-char';
+      arc.style.setProperty('--arc-y', (-lift).toFixed(1) + 'px');
+      arc.style.setProperty('--arc-rot', tilt.toFixed(1) + 'deg');
+
+      const wave = document.createElement('span');
+      wave.className = 'wave-char';
+      wave.style.setProperty('--i', i);
+      wave.textContent = (ch === ' ') ? '\u00A0' : ch;
+
+      arc.appendChild(wave);
+      frag.appendChild(arc);
+    });
+    el.appendChild(frag);
+  })();
+
+  /* =========================================================
+     แก้ไขตรงนี้: ใส่รูปภาพและข้อความของแต่ละช่วงเวลา
+     - img: ใส่ path หรือ URL ของรูปภาพ (ปล่อยว่าง "" ถ้ายังไม่มีรูป)
+     - text: ใส่ข้อความ/ความทรงจำของช่วงนั้น
+     ต้องมีครบ 15 รายการ ตามลำดับ 1m → 1.3y
+     ========================================================= */
+  const milestoneMedia = [
+    { img: "1m.jpg", text: "" },       // 1m
+    { img: "2.JPG", text: "" },             // 2m
+    { img: "3.JPG", text: "" },             // 3m
+    { img: "4.JPG", text: "" },             // 4m
+    { img: "5.JPG", text: "" },             // 5m
+    { img: "6.JPG", text: "" },             // 6m
+    { img: "7.JPG", text: "" },             // 7m
+    { img: "8.JPG", text: "" },             // 8m
+    { img: "9.JPG", text: "" },             // 9m
+    { img: "10.JPG", text: "" },            // 10m
+    { img: "11.JPG", text: "" },            // 11m
+    { img: "12.JPG", text: "" },   // 1y
+    { img: "1.1.JPG", text: "" },           // 1.1y
+    { img: "1.2.JPG", text: "" },           // 1.2y
+    { img: "1.3.JPG", text: "" } // 1.3y
+  ];
+
+  const milestoneMeta = [
+    { id:"1m", label:"1 เดือน" }, { id:"2m", label:"2 เดือน" }, { id:"3m", label:"3 เดือน" },
+    { id:"4m", label:"4 เดือน" }, { id:"5m", label:"5 เดือน" }, { id:"6m", label:"6 เดือน" },
+    { id:"7m", label:"7 เดือน" }, { id:"8m", label:"8 เดือน" }, { id:"9m", label:"9 เดือน" },
+    { id:"10m", label:"10 เดือน" }, { id:"11m", label:"11 เดือน" }, { id:"1y", label:"1 ปี" },
+    { id:"1.1y", label:"1.1 ปี" }, { id:"1.2y", label:"1.2 ปี" }, { id:"1.3y", label:"1.3 ปี" }
+  ];
+
+  /* =========================================================
+     แก้ไขตรงนี้: ใส่รูปภาพเล็กๆ ที่จะลอยขึ้นมาแบบสุ่มในหน้าไทม์ไลน์
+     ใส่ path หรือ URL ของรูปได้สูงสุดกี่รูปก็ได้ (ปล่อยว่าง "" ถ้ายังไม่มีรูป)
+     ========================================================= */
+  const floatingPhotos = [
+    { img: "104.jpg" },
+    { img: "100.JPG" },
+    { img: "101.JPG" },
+    { img: "102.JPG" },
+    { img: "103.JPG" },
+    { img: "104.JPG" },
+    { img: "105.JPG" },
+    { img: "106.JPG" },
+    { img: "107.JPG" },
+    { img: "108.JPG" }
+
+  ];
+
+  /* =========================================================
+     แก้ไขตรงนี้: รูป/คลิปวิดีโอกรอบโพลารอยด์เล็กๆ ที่ลอยอยู่รอบๆ หน้ารายละเอียด
+     แยกชุดกันไปในแต่ละเดือน (ไม่ใช้ชุดเดียวกันซ้ำทุกเดือนเหมือนเดิม)
+     - ใส่ path/URL ที่ "img" สำหรับรูปภาพ หรือที่ "video" สำหรับคลิปวิดีโอ (ใส่ได้แค่อย่างใดอย่างหนึ่งต่อ 1 ช่อง)
+     - ปล่อยว่างทั้งคู่ "" ถ้ายังไม่มีรูป/คลิป จะขึ้นเป็นไอคอนหัวใจแทน
+     - แต่ละเดือนใส่ได้กี่ชิ้นก็ได้ ตามลำดับ 1m → 1.3y (ต้องมีครบ 15 แถว ตรงกับ milestoneMeta)
+     ========================================================= */
+  const decorativePhotosByMonth = [
+    /* 1m   */ [ { img:"", video:"v1.1.mp4" }, { img:"", video:"v1.2.mp4" }, { img:"", video:"v1.mp4" } ,{ img:"", video:"v1.3.mp4" } , { img:"", video:"v1.4.mp4" } ,{ img:"", video:"v1.5.mp4" }],
+    /* 2m   */ [ { img:"", video:"v2.1.mp4" }, { img:"", video:"v2.mp4" },{ img:"", video:"v2.2.mp4" }, { img:"", video:"v2.3.mp4" }, { img:"", video:"v2.4.mp4" }],
+    /* 3m   */ [ { img:"", video:"v3.1.mp4" }, { img:"", video:"v3.mp4" },{ img:"", video:"v3.2.mp4" }, { img:"", video:"v3.3.mp4" }, { img:"", video:"v3.4.mp4" }  ],
+    /* 4m   */ [ { img:"", video:"v4.mp4" }, { img:"", video:"v4.5.mp4" },{ img:"", video:"v4.4.mp4" }, { img:"", video:"v4.3.mp4" },{ img:"", video:"v4.2.mp4" }, { img:"", video:"v4.1.mp4" }  ],
+    /* 5m   */ [ { img:"", video:"v5.mp4" }, { img:"", video:"v5.1.mp4" },{ img:"", video:"v5.2.mp4" }, { img:"", video:"v5.3.mp4" } , { img:"", video:"v5.4.mp4" },{ img:"", video:"v5.5.mp4" }, { img:"", video:"v5.6.mp4" }  ],
+    /* 6m   */ [ { img:"", video:"v6.4.mp4" }, { img:"", video:"v6.mp4" },{ img:"", video:"v6.3.mp4" }, { img:"", video:"v6.2.mp4" }, { img:"", video:"v6.1.mp4" }  ],
+    /* 7m   */ [ { img:"", video:"v7.mp4" }, { img:"", video:"v7.1.mp4" },{ img:"", video:"v7.2.mp4" }, { img:"", video:"v7.3.mp4" },{ img:"", video:"v7.4.mp4" }, { img:"", video:"v7.5.mp4" }  ],
+    /* 8m   */ [ { img:"", video:"v8.mp4" }, { img:"", video:"v8.1.mp4" },{ img:"", video:"v8.2.mp4" }, { img:"", video:"v8.3.mp4" },{ img:"", video:"v8.4.mp4" }, { img:"", video:"v8.5.mp4" }  ],
+    /* 9m   */ [ { img:"", video:"V9.mp4" }, { img:"", video:"V9.1.mp4" },{ img:"", video:"V9.2.mp4" }, { img:"", video:"V9.3.mp4" } , { img:"", video:"V9.4.mp4" },{ img:"", video:"V9.5.mp4" }, { img:"", video:"V9.6.mp4" }  ],
+    /* 10m  */ [ { img:"", video:"V10.mp4" }, { img:"", video:"V10.1.mp4" },{ img:"", video:"V10.2.mp4" }, { img:"", video:"V10.3.mp4" } ,{ img:"", video:"V10.4.mp4" }, { img:"", video:"V10.5.mp4" }  ],
+    /* 11m  */ [ { img:"", video:"V11.mp4" }, { img:"", video:"V11.1.mp4" },{ img:"", video:"V11.2.mp4" }, { img:"", video:"V11.3.mp4" } , { img:"", video:"V11.4.mp4" }  ],
+    /* 1y   */ [ { img:"", video:"V12.mp4" }, { img:"", video:"V12.1.mp4" },{ img:"", video:"V12.2.mp4" }, { img:"", video:"V12.3.mp4" }  ],
+    /* 1.1y */ [ { img:"", video:"V13.mp4" }, { img:"", video:"V13.2.mp4" },{ img:"", video:"V13.1.mp4" }  ],
+    /* 1.2y */ [ { img:"", video:"V14.mp4" }, { img:"", video:"V14.1.mp4" },{ img:"", video:"V14.2.mp4" }, { img:"", video:"V14.3.mp4" } ,{ img:"", video:"V14.4.mp4" } ],
+    /* 1.3y */ [ { img:"a1.jpg", video:"" }, { img:"a6.jpg", video:"" }, { img:"a5.jpg", video:"" },{ img:"a4.jpg", video:"" } ,{ img:"a2.JPG", video:"" },{ img:"a3.JPG", video:"" }  ]
+  ];
+
+  /* =========================================================
+     แก้ไขตรงนี้: คลิปวิดีโอ/รูปในหน้าคลังความทรงจำ (หลังจบ 1.3y)
+     ใส่ path/URL ที่ "video" สำหรับคลิป หรือ "img" สำหรับรูปภาพ (อย่างใดอย่างหนึ่งต่อ 1 ช่อง)
+     ปล่อยว่างทั้งคู่ "" ถ้ายังไม่มีไฟล์ จะขึ้นเป็นไอคอนหัวใจแทน
+     ต้องมีครบ 11 ช่อง จะถูกจัดเรียงเป็นแถวละ 4 ช่องอัตโนมัติ (4-4-3)
+     ========================================================= */
+  const finaleClips = [
+    { img:"", video:"14.1.mp4" }, { img:"", video:"14.mp4" }, { img:"", video:"14.2.mp4" }, { img:"", video:"14.3.mp4" },
+    { img:"", video:"14.4.mp4" }, { img:"", video:"14.5.mp4" }, { img:"", video:"14.6.mp4" }, { img:"", video:"14.7.mp4" },
+    { img:"", video:"14.8.mp4" }, { img:"", video:"14.9.mp4" }, { img:"", video:"14.10.mp4" }
+  ];
+
+  const motifs = ["motif-rings","motif-petals","motif-comet","motif-aurora","motif-sparkle"];
+
+  function hueFor(i){ return 300 + i * (60/14); } // 300 -> 360 องศา (ม่วง -> ชมพูเข้ม)
+
+  /* ---------------- PAGE 1 : THREE.JS GALAXY ---------------- */
+  let renderer, scene, camera, galaxyPoints, starPoints, rafId;
+  function initGalaxy(){
+    const canvas = document.getElementById('galaxy-canvas');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 100);
+    camera.position.set(0, 5.6, 11.5);
+    camera.lookAt(0,0,0);
+
+    // spiral galaxy particles
+    const count = 9000;
+    const positions = new Float32Array(count*3);
+    const colors = new Float32Array(count*3);
+    const arms = 4;
+    const c1 = new THREE.Color(0xff6fa8); // rose
+    const c2 = new THREE.Color(0xd94ff5); // fuchsia
+    const c3 = new THREE.Color(0xffe3c9); // gold core
+
+    for(let i=0;i<count;i++){
+      const radius = Math.pow(Math.random(), 1.5) * 3.6;
+      const armAngle = (i % arms) * (Math.PI*2/arms);
+      const spin = radius * 1.4;
+      const randAngle = (Math.random()-0.5) * 0.9;
+      const angle = armAngle + spin + randAngle;
+
+      const spread = (1 - radius/3.6) * 0.5;
+      const x = Math.cos(angle) * radius + (Math.random()-0.5)*spread;
+      const z = Math.sin(angle) * radius + (Math.random()-0.5)*spread;
+      const y = (Math.random()-0.5) * 0.35 * (1 - radius/3.6);
+
+      positions[i*3]=x; positions[i*3+1]=y; positions[i*3+2]=z;
+
+      const mixed = new THREE.Color();
+      const t = radius/3.6;
+      if(t < 0.25){ mixed.copy(c3).lerp(c2, t/0.25); }
+      else{ mixed.copy(c2).lerp(c1, (t-0.25)/0.75); }
+      colors[i*3]=mixed.r; colors[i*3+1]=mixed.g; colors[i*3+2]=mixed.b;
+    }
+    const galaxyGeo = new THREE.BufferGeometry();
+    galaxyGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    galaxyGeo.setAttribute('color', new THREE.BufferAttribute(colors,3));
+    const galaxyMat = new THREE.PointsMaterial({
+      size:0.028, vertexColors:true, transparent:true, opacity:0.9,
+      depthWrite:false, blending:THREE.AdditiveBlending
+    });
+    galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
+    galaxyPoints.rotation.x = 0.35;
+    galaxyPoints.scale.setScalar(0.08);
+    scene.add(galaxyPoints);
+
+    // background stars
+    const starCount = 1400;
+    const starPos = new Float32Array(starCount*3);
+    for(let i=0;i<starCount;i++){
+      starPos[i*3] = (Math.random()-0.5) * 40;
+      starPos[i*3+1] = (Math.random()-0.5) * 40;
+      starPos[i*3+2] = (Math.random()-0.5) * 40;
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+    const starMat = new THREE.PointsMaterial({ size:0.02, color:0xffd7ec, transparent:true, opacity:0.6 });
+    starPoints = new THREE.Points(starGeo, starMat);
+    scene.add(starPoints);
+
+    animateGalaxy();
+    window.addEventListener('resize', onResizeGalaxy);
+  }
+  function onResizeGalaxy(){
+    if(!renderer) return;
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  let galaxyClock = 0;
+  let birthT = 0; // 0 -> 1 over the opening sequence
+  let growClock = 0; // keeps ticking after birth completes, so the galaxy keeps drifting closer forever
+  const BIRTH_DURATION = 2.8; // seconds
+  function easeOutExpo(x){ return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x); }
+
+  /* -- the "ครบรอบ1.3y" title stays above the galaxy as it swells, with a gentle, non-stiff sway -- */
+  const titleStage = document.getElementById('anniv-title-stage');
+  function updateTitleTrack(approach){
+    if(!titleStage) return;
+    const lift = -(approach * 130);          // climbs higher the closer/bigger the galaxy gets
+    const wobbleX = Math.sin(galaxyClock*0.8) * 6;
+    const wobbleY = Math.sin(galaxyClock*1.15) * 3.5;
+    const wobbleRot = Math.sin(galaxyClock*0.55) * 1.6;
+    titleStage.style.transform = `translate(${wobbleX}px, ${(lift+wobbleY).toFixed(1)}px) rotate(${wobbleRot.toFixed(2)}deg)`;
+  }
+
+  function animateGalaxy(){
+    // หยุดลูปเรนเดอร์ไปเลยเมื่อไม่ได้อยู่หน้ากาแล็คซี่ (ประหยัด CPU/GPU/แรมมาก
+    // เพราะเดิมมันเรนเดอร์ 3D วนตลอดแม้ผู้ใช้จะไปหน้าอื่นแล้วก็ตาม)
+    if(!views.galaxy || !views.galaxy.classList.contains('active')){
+      rafId = null;
+      return;
+    }
+    rafId = requestAnimationFrame(animateGalaxy);
+    galaxyClock += 0.0016;
+
+    if(birthT < 1){
+      birthT = Math.min(1, birthT + 0.0016/BIRTH_DURATION);
+    } else {
+      growClock += 0.0016; // only starts counting once the opening reveal is done
+    }
+    const eased = easeOutExpo(birthT);
+    // endless, gentle "approaching" growth once the birth reveal is finished -
+    // asymptotic so it keeps swelling forever without ever spiraling out of control
+    const approach = 1 - Math.exp(-growClock / 20);
+    const extraScale = approach * 0.6;   // galaxy keeps growing larger over time
+    const extraZoom  = approach * 2.5;   // camera keeps drifting closer over time
+
+    if(galaxyPoints){
+      const spinSpeed = 0.0011 * (1 + (1-eased)*5); // fast spin settling to normal
+      galaxyPoints.rotation.y += spinSpeed;
+      galaxyPoints.scale.setScalar(0.08 + eased*0.92 + extraScale);
+    }
+    if(starPoints){ starPoints.rotation.y -= 0.0002; }
+    if(camera){
+      // fly in from afar toward the resting orbit position, then keep creeping inward
+      const restX = Math.sin(galaxyClock*0.3) * 0.6;
+      const restY = 2.4 + Math.sin(galaxyClock*0.5)*0.15;
+      const restZ = 5.4 - extraZoom;
+      camera.position.x = THREE.MathUtils.lerp(0, restX, eased);
+      camera.position.y = THREE.MathUtils.lerp(5.6, restY, eased);
+      camera.position.z = THREE.MathUtils.lerp(11.5, restZ, eased);
+      camera.lookAt(0,0,0);
+    }
+    renderer.render(scene, camera);
+    updateTitleTrack(approach);
+  }
+
+  /* ---------------- PAGE 1 : LOOPING "TAP ME" HEARTS ---------------- */
+  /* หลังอยู่หน้ากาแล็คซีครบ 15 วินาที จะเริ่มมีหัวใจขนาดกลางลอยขึ้นมาเรื่อยๆ แบบวนลูป
+     กดที่หัวใจ -> หัวใจแตกเป็นประกาย พร้อมข้อความเด้งขึ้นทีละข้อความ วนซ้ำไปเรื่อยๆ */
+  const loveMessages = ["I LOVE YOU", "รักนะ อิอิ", "มาหอมแก้มหน่อย", "เค้ารักอ้วน", "อยากเจอแย้วว", "ขอจับแก้มม"];
+  let loveMsgIndex = 0;
+  const MAX_FLOAT_HEARTS = 4; // ไม่ให้หัวใจเกลื่อนจอเกินไป
+
+  function showLoveMessage(x, y){
+    const el = document.createElement('div');
+    el.className = 'love-msg';
+    el.textContent = loveMessages[loveMsgIndex % loveMessages.length];
+    loveMsgIndex++; // ข้อความถัดไปสำหรับหัวใจดวงต่อไป วนลูปตลอด
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    document.getElementById('love-msg-layer').appendChild(el);
+    setTimeout(() => el.remove(), 6800); // ค้างไว้ ~5 วิ แล้วค่อยๆ จางหายไปตามแอนิเมชัน loveMsgPop
+  }
+
+  function fadeOutHeart(heart){
+    if(!heart || !heart.parentNode) return;
+    heart.style.pointerEvents = 'none';
+    heart.style.animation = 'none'; // หยุด bob/fadeIn ก่อน กันชนกับ transition ตอนหาย
+    void heart.offsetWidth;
+    heart.classList.add('fh-leaving');
+    setTimeout(() => heart.remove(), 650);
+  }
+
+  function popFloatHeart(heart){
+    if(!heart || !heart.parentNode) return;
+    clearTimeout(Number(heart.dataset.lifeTimer));
+    const r = heart.getBoundingClientRect();
+    const x = r.left + r.width/2, y = r.top + r.height/2;
+    const hue = Number(heart.dataset.hue) || 340;
+    heart.remove();
+    triggerClickBurst(x, y, hue); // แตกออกเป็นหัวใจ+ประกาย ใช้ระบบเดียวกับทั้งเว็บ
+    showLoveMessage(x, y);
+  }
+
+  const MINI_HEART_SVG = `<svg viewBox="0 0 32 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 27S2.4 18.6 2.4 9.9C2.4 5.4 5.9 2 10 2c2.6 0 4.9 1.3 6 3.4C17.1 3.3 19.4 2 22 2c4.1 0 7.6 3.4 7.6 7.9C29.6 18.6 16 27 16 27Z"
+      stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="currentColor" fill-opacity="0.12"/>
+  </svg>`;
+
+  function spawnFloatHeart(){
+    const wrap = document.getElementById('view-galaxy');
+    if(!wrap) return;
+    if(wrap.querySelectorAll('.float-heart').length >= MAX_FLOAT_HEARTS) return;
+
+    const heart = document.createElement('div');
+    heart.className = 'float-heart';
+    heart.innerHTML = MINI_HEART_SVG;
+    const size = 34 + Math.random()*16;      // ขนาดกลางๆ แบบมินิมอล
+    const hue = 335 + Math.random()*15;      // ให้สีนิ่งๆ ใกล้เคียงกันทุกดวง ไม่ฉูดฉาด
+    const dur = (4 + Math.random()*2).toFixed(2);
+    heart.dataset.hue = hue.toFixed(0);
+    heart.style.left = (8 + Math.random()*84) + '%';
+    heart.style.top = (14 + Math.random()*64) + '%';
+    heart.style.setProperty('--fh-size', size.toFixed(0) + 'px');
+    heart.style.animation = `fhBob ${dur}s ease-in-out infinite, fhFadeIn .6s ease both`;
+
+    heart.addEventListener('click', (e) => {
+      e.stopPropagation(); // กันไม่ให้ทะลุไปกดเปลี่ยนหน้ากาแล็คซี
+      popFloatHeart(heart);
+    });
+
+    wrap.appendChild(heart);
+    const life = setTimeout(() => fadeOutHeart(heart), 9000 + Math.random()*2000);
+    heart.dataset.lifeTimer = life;
+  }
+
+  function startPage1HeartsLoop(){
+    setTimeout(() => {
+      spawnFloatHeart();
+      setInterval(() => {
+        if(views.galaxy.classList.contains('active')) spawnFloatHeart();
+      }, 4200);
+    }, 15000); // เริ่มหลังอยู่หน้า 1 ครบ 15 วินาที
+  }
+
+  /* ---------------- PAGE 1 : AMBIENT SHOOTING STARS ---------------- */
+  function spawnGalaxyComets(){
+    const wrap = document.getElementById('galaxy-comets');
+    for(let i=0;i<5;i++){
+      const c = document.createElement('div');
+      c.style.position = 'absolute';
+      c.style.width = '2px'; c.style.height = '2px'; c.style.borderRadius = '50%';
+      c.style.background = '#fff';
+      c.style.top = (Math.random()*45) + '%';
+      c.style.left = '-4%';
+      c.style.boxShadow = '0 0 18px 3px rgba(255,220,238,0.9), -90px -34px 60px -8px rgba(255,150,220,0.45)';
+      c.style.animation = `cometMove ${9 + Math.random()*9}s linear infinite`;
+      c.style.animationDelay = (3.6 + Math.random()*12) + 's';
+      wrap.appendChild(c);
+    }
+  }
+
+  /* ---------------- PAGE 2 : HEARTS CANVAS (floating, loop) ---------------- */
+  function spawnHearts(){
+    const wrap = document.getElementById('view-timeline');
+    for(let i=0;i<16;i++){
+      const h = document.createElement('div');
+      h.className = 'heart-float';
+      h.innerHTML = '♥';
+      const size = 10 + Math.random()*16;
+      h.style.left = (Math.random()*100) + 'vw';
+      h.style.fontSize = size + 'px';
+      h.style.animationDuration = (10 + Math.random()*10) + 's';
+      h.style.animationDelay = (Math.random()*12) + 's';
+      wrap.appendChild(h);
+    }
+  }
+
+  /* ---------------- PAGE 2 : GRAND ENTRANCE BURST ---------------- */
+  const heartsCanvas = document.getElementById('hearts-canvas');
+  const hctx = heartsCanvas.getContext('2d');
+  function resizeHeartsCanvas(){
+    heartsCanvas.width = window.innerWidth;
+    heartsCanvas.height = window.innerHeight;
+  }
+  resizeHeartsCanvas();
+  window.addEventListener('resize', resizeHeartsCanvas);
+
+  let burstParticles = [];
+  function triggerStarburst(){
+    burstParticles = [];
+    const cx = heartsCanvas.width/2, cy = heartsCanvas.height*0.38;
+    for(let i=0;i<110;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = 2 + Math.random()*7;
+      burstParticles.push({
+        x:cx, y:cy,
+        vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+        life:1, decay:0.007 + Math.random()*0.014,
+        size:1 + Math.random()*2.6,
+        hue:305 + Math.random()*55
+      });
+    }
+    requestAnimationFrame(runBurst);
+  }
+  function runBurst(){
+    hctx.clearRect(0,0,heartsCanvas.width, heartsCanvas.height);
+    let alive = false;
+    burstParticles.forEach(p=>{
+      if(p.life<=0) return;
+      alive = true;
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= 0.986; p.vy = p.vy*0.986 + 0.015;
+      p.life -= p.decay;
+      hctx.beginPath();
+      hctx.fillStyle = `hsla(${p.hue},95%,82%,${Math.max(p.life,0)})`;
+      hctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      hctx.fill();
+    });
+    if(alive) requestAnimationFrame(runBurst);
+    else hctx.clearRect(0,0,heartsCanvas.width, heartsCanvas.height);
+  }
+
+  /* ---------------- PAGE 2 : GRAND HEADER + TIMELINE REVEAL ---------------- */
+  function playTimelineIntro(){
+    triggerStarburst();
+    const header = document.querySelector('.timeline-header');
+    const stars = document.querySelectorAll('.ms-star');
+
+    if(header){
+      header.style.transition = 'none';
+      header.style.opacity = '0';
+      header.style.transform = 'translateY(14px)';
+    }
+    stars.forEach(s=>{
+      const rot = Number(s.dataset.rot || 0);
+      s.style.transition = 'none';
+      s.style.opacity = '0';
+      s.style.transform = `rotate(${rot}deg) scale(0.35)`;
+    });
+
+    // force reflow so the "none" transition state is applied before animating
+    void document.body.offsetHeight;
+
+    requestAnimationFrame(()=>{
+      if(header){
+        header.style.transition = 'opacity .85s ease, transform .85s ease';
+        header.style.opacity = '1';
+        header.style.transform = 'translateY(0)';
+      }
+      stars.forEach((s, idx)=>{
+        setTimeout(()=>{
+          const rot = Number(s.dataset.rot || 0);
+          s.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1), opacity .5s ease';
+          s.style.opacity = '1';
+          s.style.transform = `rotate(${rot}deg) scale(1)`;
+        }, 380 + idx*55);
+      });
+    });
+  }
+
+  /* ---------------- PAGE 2 : ORGANIC FLOATING PHOTO FRAGMENTS (loop) ---------------- */
+  const blobShapes = [
+    "63% 37% 54% 46% / 45% 41% 59% 55%",
+    "38% 62% 63% 37% / 41% 44% 56% 59%",
+    "50% 50% 32% 68% / 58% 41% 59% 42%",
+    "70% 30% 46% 54% / 30% 62% 38% 70%",
+    "34% 66% 68% 32% / 62% 40% 60% 38%",
+    "58% 42% 40% 60% / 66% 35% 65% 34%"
+  ];
+  function rnd(min, max){ return min + Math.random()*(max-min); }
+
+  /* เก็บตำแหน่งปัจจุบันของรูปลอยแต่ละรูป (อิงตาม index) เพื่อไม่ให้รูปลอยไปทับกันเอง */
+  const activeFloatRects = [];
+
+  /* เลือกตำแหน่งให้รูปภาพลอย โดยเลี่ยงไม่ให้ทับกับปุ่ม (buttonAvoidRects) และไม่ทับกับรูปลอยรูปอื่น (activeFloatRects) */
+  function pickFloatPosition(sizeW, sizeH, selfIdx){
+    const minX = 4, maxX = 88, minY = 12, maxY = 82;
+    const fw = (typeof fieldW !== 'undefined' && fieldW) || window.innerWidth;
+    const fh = (typeof fieldH !== 'undefined' && fieldH) || window.innerHeight;
+    let best = null, bestClashes = Infinity;
+    for(let attempt = 0; attempt < 60; attempt++){
+      const xPct = rnd(minX, maxX), yPct = rnd(minY, maxY);
+      const cx = fw * xPct / 100, cy = fh * yPct / 100;
+      const rect = { left: cx - sizeW/2, right: cx + sizeW/2, top: cy - sizeH/2, bottom: cy + sizeH/2 };
+      let clashes = 0;
+      for(const b of (typeof buttonAvoidRects !== 'undefined' ? buttonAvoidRects : [])){
+        if(rectsClash(rect, b, 22)) clashes++;
+      }
+      activeFloatRects.forEach((r, idx) => {
+        if(idx === selfIdx || !r) return;
+        if(rectsClash(rect, r, 18)) clashes++;
+      });
+      if(clashes === 0) return { x: xPct, y: yPct };
+      if(clashes < bestClashes){ bestClashes = clashes; best = { x: xPct, y: yPct }; }
+    }
+    return best || { x: 50, y: 50 };
+  }
+
+  function cycleFloatPhoto(el, idx){
+    const size = rnd(40, 78);
+    const ratio = rnd(0.82, 1.2);
+    const pos = pickFloatPosition(size, size*ratio, idx);
+    const x = pos.x, y = pos.y;
+    const blob = blobShapes[Math.floor(Math.random()*blobShapes.length)];
+    const rot = rnd(-14, 14);
+    const restOpacity = rnd(0.72, 0.95);
+
+    /* จองพื้นที่นี้ไว้ทันที เพื่อไม่ให้รูปลอยรูปอื่นถูกวางมาทับ ตลอดช่วงที่รูปนี้ยังลอยอยู่ */
+    const fw = (typeof fieldW !== 'undefined' && fieldW) || window.innerWidth;
+    const fh = (typeof fieldH !== 'undefined' && fieldH) || window.innerHeight;
+    const cx = fw * x/100, cy = fh * y/100;
+    const w = size, h = size*ratio;
+    activeFloatRects[idx] = { left: cx - w/2, right: cx + w/2, top: cy - h/2, bottom: cy + h/2 };
+
+    el.style.width = size + 'px';
+    el.style.height = (size*ratio) + 'px';
+    el.style.left = x + '%';
+    el.style.top = y + '%';
+    el.style.borderRadius = blob;
+    el.style.transition = 'none';
+    el.style.opacity = '0';
+    el.style.transform = `translateY(18px) scale(0.6) rotate(${rot}deg)`;
+
+    void el.offsetWidth; // force reflow before animating in
+
+    requestAnimationFrame(()=>{
+      el.style.transition = 'opacity 1.2s ease, transform 1.2s cubic-bezier(.2,.8,.2,1)';
+      el.style.opacity = String(restOpacity);
+      el.style.transform = `translateY(0) scale(1) rotate(${rot}deg)`;
+    });
+
+    const holdTime = rnd(4000, 5000);       // ค้างไว้ 4-5 วินาที
+    const floatDistance = rnd(90, 150);
+
+    setTimeout(()=>{
+      el.style.transition = 'opacity 2s ease, transform 2.4s ease-in';
+      el.style.opacity = '0';
+      el.style.transform = `translateY(-${floatDistance}px) scale(0.9) rotate(${rot*1.3}deg)`;
+      setTimeout(()=> cycleFloatPhoto(el, idx), 2500); // ลอยขึ้นแล้วหายไป จากนั้นวนซ้ำที่ตำแหน่งใหม่
+    }, 1200 + holdTime);
+  }
+
+  function initFloatPhotos(){
+    const wrap = document.getElementById('float-photos');
+    floatingPhotos.forEach((p, idx) => {
+      const el = document.createElement('div');
+      el.className = 'float-photo';
+      el.innerHTML = p.img
+        ? `<img src="${p.img}" alt="" decoding="async" onerror="this.parentElement.innerHTML='<div class=&quot;fp-fallback&quot;>♥</div>'">`
+        : `<div class="fp-fallback">♥</div>`;
+      wrap.appendChild(el);
+      setTimeout(()=> cycleFloatPhoto(el, idx), idx*850 + rnd(0,400));
+    });
+  }
+
+  /* ---------------- PAGE 3 : AMBIENT POLAROIDS AROUND THE DETAIL CARD ---------------- */
+  function polaroidMediaHTML(p){
+    if(p && p.video){
+      return `<video src="${p.video}" autoplay muted loop playsinline preload="metadata"
+        onerror="this.parentElement.innerHTML='<div class=&quot;dp-fallback&quot;>♥</div>'"></video>`;
+    }
+    if(p && p.img){
+      return `<img src="${p.img}" alt="" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<div class=&quot;dp-fallback&quot;>♥</div>'">`;
+    }
+    return `<div class="dp-fallback">♥</div>`;
+  }
+
+  /* ---------------- PAGE 4 : VIDEO CLIP GALLERY GRID (4 ต่อแถว) ---------------- */
+  function initGalleryClips(){
+    const grid = document.getElementById('gallery-grid');
+    if(!grid) return;
+    grid.innerHTML = '';
+    finaleClips.forEach((p) => {
+      const el = document.createElement('div');
+      el.className = 'gallery-polaroid';
+      el.style.setProperty('--gp-rot', ((Math.random()-0.5)*5).toFixed(1) + 'deg');
+      el.innerHTML = polaroidMediaHTML(p);
+      grid.appendChild(el);
+    });
+  }
+
+  function initDetailFloatPhotos(monthIndex){
+    const wrap = document.getElementById('detail-float-photos');
+    if(!wrap) return;
+    wrap.innerHTML = ''; // เคลียร์ของเดือนก่อนหน้าออกก่อนเสมอ ไม่ให้ปนกัน
+
+    const set = decorativePhotosByMonth[monthIndex] || [];
+    set.forEach((p) => {
+      const el = document.createElement('div');
+      el.className = 'detail-polaroid';
+      el.innerHTML = polaroidMediaHTML(p);
+
+      const rot = ((Math.random()-0.5) * 22).toFixed(1);
+      el.style.setProperty('--dp-rot', rot + 'deg');
+      el.style.setProperty('--dp-x', ((Math.random()-0.5)*14).toFixed(1) + 'px');
+      el.style.setProperty('--dp-y', (-(10 + Math.random()*16)).toFixed(1) + 'px');
+      el.style.setProperty('--dp-dur', (7 + Math.random()*5).toFixed(2) + 's');
+      el.style.setProperty('--dp-delay', (Math.random()*-9).toFixed(2) + 's');
+
+      wrap.appendChild(el);
+    });
+    layoutDetailFloatPhotos();
+  }
+
+  /* กระจายตำแหน่งรูปเล็กๆ ใหม่แบบไม่ทับกันเอง และอยู่แค่ริมซ้าย-ขวาเท่านั้น
+     (ไม่ล้ำเข้ามาทับรูปหลัก/ข้อความตรงกลาง) เรียกใช้ทุกครั้งที่เปิด/เปลี่ยนเดือน */
+  function layoutDetailFloatPhotos(){
+    const wrap = document.getElementById('detail-float-photos');
+    if(!wrap) return;
+    const dpEls = Array.from(wrap.querySelectorAll('.detail-polaroid'));
+    if(!dpEls.length) return;
+
+    const fw = wrap.clientWidth || window.innerWidth;
+    const fh = wrap.clientHeight || window.innerHeight;
+
+    let w = Math.max(144, Math.min(228, fw * 0.225));
+    let h = w * 1.25; // matches the 4:5 aspect ratio of the polaroid frame
+    const stripW = Math.max(w + 20, fw * 0.24); // usable band width from each edge, kept clear of the centered content
+    const topBound = fh * 0.05;
+    const bottomBound = fh * 0.95;
+    const availH = bottomBound - topBound;
+    const PAD = 16;
+
+    // แบ่งซ้าย-ขวาสลับกันไปตามลำดับ
+    const leftEls = dpEls.filter((_, idx) => idx % 2 === 0);
+    const rightEls = dpEls.filter((_, idx) => idx % 2 === 1);
+
+    // ถ้าจำนวนโพลารอยด์ต่อฝั่งเยอะจนพื้นที่แนวตั้งไม่พอ ให้ย่อขนาดลงอัตโนมัติ
+    // กันไม่ให้ภาพซ้อนทับกันเอง (แทนที่จะสุ่มตำแหน่งแล้วปล่อยให้ชนกันแบบเดิม)
+    const maxPerSide = Math.max(leftEls.length, rightEls.length, 1);
+    const maxHAllowed = (availH - PAD * (maxPerSide - 1)) / maxPerSide;
+    if(h > maxHAllowed){
+      const scale = Math.max(0.4, maxHAllowed / h);
+      h *= scale; w *= scale;
+    }
+
+    function layoutSide(els, side){
+      const n = els.length;
+      if(!n) return;
+      const slotH = availH / n; // แบ่งพื้นที่แนวตั้งเป็นช่องๆ เท่าๆ กัน คนละช่อง ไม่มีทางทับกัน
+      els.forEach((el, idx) => {
+        const slotTop = topBound + idx * slotH;
+        const jitterRange = Math.max(0, slotH - h - PAD);
+        const top = slotTop + PAD/2 + Math.random() * jitterRange;
+        const offset = 4 + Math.random() * Math.max(4, stripW - w - 4);
+        const cx = side === 'left' ? offset + w/2 : fw - offset - w/2;
+
+        el.style.width = w + 'px';
+        el.style.height = h + 'px';
+        el.style.top = top + 'px';
+        if(side === 'left'){
+          el.style.left = (cx - w/2) + 'px';
+          el.style.right = 'auto';
+        } else {
+          el.style.right = (fw - (cx + w/2)) + 'px';
+          el.style.left = 'auto';
+        }
+      });
+    }
+
+    layoutSide(leftEls, 'left');
+    layoutSide(rightEls, 'right');
+  }
+
+  /* ---------------- BUILD TIMELINE BUTTONS (คละขนาด/ลักษณะแบบสุ่ม ไม่ทับกัน) ---------------- */
+  function seededRandom(seed){
+    let s = seed % 2147483647;
+    if(s <= 0) s += 2147483646;
+    return function(){
+      s = (s * 16807) % 2147483647;
+      return (s - 1) / 2147483646;
+    };
+  }
+
+  /* สร้าง border-radius แบบ organic ทรงมนละมุน (ไม่ใช่วงกลม/สี่เหลี่ยม และไม่แหลมคม) */
+  function organicRadius(rnd){
+    const v = () => Math.round(36 + rnd() * 30); // 36–66% ทรงมนกลม ไม่แหลม
+    return `${v()}% ${v()}% ${v()}% ${v()}% / ${v()}% ${v()}% ${v()}% ${v()}%`;
+  }
+
+  /* เช็คว่าสี่เหลี่ยมสองอัน (บวกระยะเว้น pad) ทับกันหรือไม่ */
+  function rectsClash(a, b, pad){
+    return !(a.right + pad <= b.left || a.left - pad >= b.right || a.bottom + pad <= b.top || a.top - pad >= b.bottom);
+  }
+
+  const track = document.getElementById('timeline-track');
+  const fieldW = track.clientWidth || window.innerWidth;
+  const fieldH = track.clientHeight || window.innerHeight;
+  const baseUnit = Math.min(fieldW, fieldH);
+
+  /* ---- ขั้นที่ 1: คำนวณขนาด/สี/รูปทรงของแต่ละปุ่ม (ยังไม่กำหนดตำแหน่ง) ---- */
+  const items = milestoneMeta.map((m, i) => {
+    const hue = (hueFor(i) + 360) % 360;
+    const rnd = seededRandom(i * 733 + 91);
+    const isFinal = i === milestoneMeta.length - 1;
+
+    const rawW = isFinal ? baseUnit * 0.24 : baseUnit * (0.135 + rnd() * 0.085);
+    const w = Math.round(Math.max(46, Math.min(isFinal ? 104 : 90, rawW)));
+    const h = Math.round(w * (0.86 + rnd() * 0.3));
+
+    const bg = isFinal
+      ? `radial-gradient(circle at 50% 42%, #fffdf6, var(--gold) 55%, hsl(${hue},68%,70%) 100%)`
+      : `radial-gradient(circle at 50% 42%, hsla(0,0%,100%,0.98), hsl(${hue},${50 + Math.round(rnd()*16)}%,${74 + Math.round(rnd()*8)}%) 55%, hsl(${(hue+24)%360},46%,62%) 100%)`;
+
+    return {
+      i, m, isFinal, w, h,
+      radius: organicRadius(rnd),
+      rot: Math.round((rnd() - 0.5) * 14),
+      idSize: isFinal ? 14 : Math.round(10 + rnd() * 2.4),
+      tipRotate: ((rnd() - 0.5) * 6).toFixed(1),
+      bg,
+      glow: `hsla(${hue},65%,72%,0.42)`
+    };
+  });
+
+  /* ---- ขั้นที่ 2: สุ่มตำแหน่งแบบเลี่ยงการทับซ้อนกัน (rejection sampling) วางชิ้นใหญ่ก่อน ---- */
+  const marginX = Math.max(16, fieldW * 0.05);
+  const topBound = fieldH * 0.24;       // เว้นพื้นที่หัวข้อด้านบนไว้
+  const bottomBound = fieldH * 0.95;
+  const usableW = Math.max(1, fieldW - marginX * 2);
+  const usableH = Math.max(1, bottomBound - topBound);
+  const PAD = 18;                        // ระยะห่างขั้นต่ำระหว่างปุ่ม (px)
+  const placeRnd = seededRandom(9173);
+  const placed = [];
+
+  items.slice().sort((a, b) => (b.w * b.h) - (a.w * a.h)).forEach(item => {
+    let bestRect = null, bestClashes = Infinity;
+    for(let attempt = 0; attempt < 300; attempt++){
+      const cx = marginX + placeRnd() * usableW;
+      const cy = topBound + placeRnd() * usableH;
+      const rect = { cx, cy, left: cx - item.w/2, right: cx + item.w/2, top: cy - item.h/2, bottom: cy + item.h/2 };
+      let clashes = 0;
+      for(const p of placed){ if(rectsClash(rect, p, PAD)) clashes++; }
+      if(clashes === 0){ bestRect = rect; break; }
+      if(clashes < bestClashes){ bestClashes = clashes; bestRect = rect; }
+    }
+    item.rect = bestRect;
+    placed.push(bestRect);
+  });
+
+  /* รายการตำแหน่งปุ่มทั้งหมด ใช้เพื่อไม่ให้รูปภาพลอยมาทับปุ่ม (อ่านใน cycleFloatPhoto ด้านบน) */
+  const buttonAvoidRects = placed;
+
+  /* ---- ขั้นที่ 3: สร้าง DOM ตามลำดับเดิม (1m → 1.3y) ---- */
+  items.forEach(item => {
+    const { m, i, rect, w, h, radius, rot, idSize, tipRotate, bg, glow, isFinal } = item;
+    const leftPct = (rect.cx / fieldW * 100).toFixed(2);
+    const topPct = (rect.cy / fieldH * 100).toFixed(2);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ms-star-wrap';
+    wrap.style.left = leftPct + '%';
+    wrap.style.top = topPct + '%';
+
+    /* ambient drift wrapper: each star loops its own gentle float + tilt forever */
+    const orbit = document.createElement('div');
+    orbit.className = 'ms-orbit';
+    const floatDur = (5.6 + Math.random()*3.6).toFixed(2);
+    const floatDelay = (Math.random()*-floatDur).toFixed(2); // start mid-cycle so stars aren't synced
+    const floatX = Math.round((Math.random()-0.5) * (isFinal?10:18));
+    const floatY = -Math.round(8 + Math.random()*(isFinal?9:15));
+    const floatRot = ((Math.random()-0.5) * (isFinal?4:8)).toFixed(1);
+    orbit.style.setProperty('--float-dur', floatDur+'s');
+    orbit.style.setProperty('--float-delay', floatDelay+'s');
+    orbit.style.setProperty('--float-x', floatX+'px');
+    orbit.style.setProperty('--float-y', floatY+'px');
+    orbit.style.setProperty('--float-rot', floatRot+'deg');
+
+    const btn = document.createElement('button');
+    btn.className = 'ms-star' + (isFinal ? ' is-final' : '');
+    btn.setAttribute('aria-label', m.label);
+    btn.style.width = w + 'px';
+    btn.style.height = h + 'px';
+    btn.style.borderRadius = radius;
+    btn.style.background = bg;
+    btn.style.setProperty('--glow-color', glow);
+    const glowDur = (3.6 + Math.random()*2.8).toFixed(2);
+    const glowDelay = (Math.random()*-glowDur).toFixed(2);
+    btn.style.setProperty('--glow-dur', glowDur+'s');
+    btn.style.setProperty('--glow-delay', glowDelay+'s');
+    btn.style.transform = `rotate(${rot}deg) scale(0.35)`;
+    btn.style.opacity = '0';
+    btn.dataset.rot = rot;
+    btn.dataset.hue = (hueFor(i) + 360) % 360;
+    btn.innerHTML = `
+      <span class="ms-tip" style="--tip-rot:${tipRotate}deg">${m.label}</span>
+      <span class="ms-id" style="font-size:${idSize}px;--counter-rot:${-rot}deg">${m.id}</span>
+    `;
+    btn.addEventListener('click', (e) => openDetail(i, e));
+    orbit.appendChild(btn);
+    wrap.appendChild(orbit);
+    track.appendChild(wrap);
+  });
+
+  /* ---------------- DETAIL PAGE RENDERING ---------------- */
+  let currentIndex = 0;
+  const detailBg = document.getElementById('detail-bg');
+  const detailDeco = document.getElementById('detail-deco');
+  const detailContent = document.getElementById('detail-content');
+  const detailMilestone = document.getElementById('detail-milestone');
+  const detailText = document.getElementById('detail-text');
+  const photoFrame = document.getElementById('photo-frame');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+
+  function buildDecoration(i){
+    detailDeco.innerHTML = '';
+
+    /* ตามที่ระบุ: ไม่ต้องมีวงกลมพื้นหลัง (motif-rings) ในเดือน 1m, 6m, 11m */
+    const noCircles = ['1m','6m','11m'].includes(milestoneMeta[i].id);
+    if(noCircles){
+      detailDeco.className = 'detail-deco';
+      return;
+    }
+
+    detailDeco.className = 'detail-deco ' + motifs[i % motifs.length];
+    const hue = hueFor(i);
+    const count = 14;
+
+    if(motifs[i % motifs.length] === 'motif-rings'){
+      for(let r=0;r<3;r++){
+        const ring = document.createElement('div');
+        ring.className = 'deco-el ring';
+        const size = 220 + r*140;
+        ring.style.width = size+'px'; ring.style.height = size+'px';
+        ring.style.borderColor = `hsla(${hue},80%,80%,${0.22 - r*0.05})`;
+        ring.style.animationDuration = (30 + r*18) + 's';
+        ring.style.animationDirection = r % 2 ? 'reverse' : 'normal';
+        ring.style.opacity = 1;
+        detailDeco.appendChild(ring);
+      }
+    } else if(motifs[i % motifs.length] === 'motif-petals'){
+      for(let p=0;p<count;p++){
+        const petal = document.createElement('div');
+        petal.className = 'deco-el petal';
+        const size = 8 + Math.random()*10;
+        petal.style.width = size+'px'; petal.style.height = size*0.8+'px';
+        petal.style.left = (Math.random()*100)+'%';
+        petal.style.background = `hsla(${hue + Math.random()*10},85%,78%,0.8)`;
+        petal.style.animationDuration = (9 + Math.random()*10)+'s';
+        petal.style.animationDelay = (Math.random()*10)+'s';
+        petal.style.opacity = 1;
+        detailDeco.appendChild(petal);
+      }
+    } else if(motifs[i % motifs.length] === 'motif-comet'){
+      for(let c=0;c<5;c++){
+        const comet = document.createElement('div');
+        comet.className = 'deco-el comet';
+        comet.style.background = `hsl(${hue},90%,85%)`;
+        comet.style.boxShadow = `0 0 24px 3px hsla(${hue},90%,80%,0.9), -60px -24px 40px -6px hsla(${hue},90%,75%,0.5)`;
+        comet.style.animationDuration = (5 + Math.random()*5)+'s';
+        comet.style.animationDelay = (Math.random()*8)+'s';
+        comet.style.opacity = 1;
+        detailDeco.appendChild(comet);
+      }
+    } else if(motifs[i % motifs.length] === 'motif-aurora'){
+      for(let w=0;w<3;w++){
+        const wave = document.createElement('div');
+        wave.className = 'deco-el wave';
+        wave.style.top = (10 + w*28) + '%';
+        wave.style.background = `linear-gradient(90deg, transparent, hsla(${hue + w*10},80%,70%,0.35), transparent)`;
+        wave.style.animationDuration = (12 + w*4)+'s';
+        wave.style.opacity = 1;
+        detailDeco.appendChild(wave);
+      }
+    } else { // sparkle
+      for(let s=0;s<26;s++){
+        const spark = document.createElement('div');
+        spark.className = 'deco-el spark';
+        spark.style.left = (Math.random()*100)+'%';
+        spark.style.top = (Math.random()*100)+'%';
+        spark.style.background = `hsl(${hue},90%,90%)`;
+        spark.style.animationDuration = (2 + Math.random()*3)+'s';
+        spark.style.animationDelay = (Math.random()*4)+'s';
+        spark.style.opacity = 1;
+        detailDeco.appendChild(spark);
+      }
+    }
+  }
+
+  function fitPhotoFrame(img){
+    const frame = img.parentElement;
+    if(!frame || !img.naturalWidth || !img.naturalHeight) return;
+    const maxW = Math.min(window.innerWidth * 0.82, 380);
+    const maxH = window.innerHeight * 0.44;
+    const ratio = img.naturalWidth / img.naturalHeight;
+    let w = maxW, h = w / ratio;
+    if(h > maxH){ h = maxH; w = h * ratio; }
+    frame.style.width = w + 'px';
+    frame.style.height = h + 'px';
+  }
+  window.fitPhotoFrame = fitPhotoFrame;
+
+  function renderDetail(i, direction){
+    currentIndex = i;
+    const hue = hueFor(i);
+    const meta = milestoneMeta[i];
+    const media = milestoneMedia[i];
+
+    detailBg.style.background =
+      `radial-gradient(ellipse 110% 75% at 50% 25%, hsla(${hue},70%,26%,0.9), transparent 68%),` +
+      `radial-gradient(ellipse 130% 90% at 50% 100%, hsla(${hue+14},60%,16%,0.95), transparent 72%),` +
+      `linear-gradient(160deg, hsl(${hue},46%,10%), hsl(${hue},42%,7%) 75%)`;
+
+    buildDecoration(i);
+
+    detailMilestone.textContent = meta.label;
+    detailText.textContent = media.text;
+
+    if(media.img){
+      photoFrame.style.width = '';
+      photoFrame.style.height = '';
+      photoFrame.innerHTML = `<img src="${media.img}" alt="ความทรงจำ ${meta.label}" decoding="async" onload="fitPhotoFrame(this)" onerror="this.parentElement.innerHTML='${placeholderHTML(meta.label)}'">`;
+      const imgEl = photoFrame.querySelector('img');
+      if(imgEl && imgEl.complete) fitPhotoFrame(imgEl); // กันกรณีรูปโหลดจาก cache แล้ว onload ไม่ยิงซ้ำ
+    } else {
+      photoFrame.style.width = '';
+      photoFrame.style.height = '';
+      photoFrame.innerHTML = placeholderHTML(meta.label);
+    }
+
+    btnPrev.disabled = (i === 0);
+    btnNext.textContent = (i === milestoneMeta.length-1) ? 'ดูคลิปความทรงจำ →' : 'ถัดไป →';
+
+    initDetailFloatPhotos(i); // สลับชุดโพลารอยด์ลอยให้ตรงกับเดือนที่กำลังดูอยู่
+  }
+
+  function placeholderHTML(label){
+    return `<div class="photo-placeholder">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.2 4.8 5.6 4.2c2-.3 3.9.6 5 2.2 1.1-1.6 3-2.5 5-2.2 3.4.6 5.2 4.2 3.6 7.5C19.5 16.4 12 21 12 21z" stroke="currentColor" stroke-width="1.3"/>
+      </svg>
+      ใส่รูปภาพของ ${label} ตรงนี้</div>`;
+  }
+
+  /* ---------------- GRAND DIRECTIONAL SWEEP FOR NEXT / PREV ---------------- */
+  function triggerNavSweep(dir, hue){
+    const overlay = document.getElementById('click-burst-overlay');
+    overlay.innerHTML = '';
+    const w = window.innerWidth, h = window.innerHeight;
+    const fromRight = dir === 1; // "next" sweeps right-to-left, matching the exit direction
+    const startX = fromRight ? w + 60 : -60;
+    const endDX = fromRight ? -(w + 160) : (w + 160);
+    const midY = h * 0.5;
+
+    const beam = document.createElement('div');
+    beam.className = 'nv-beam';
+    beam.style.left = startX + 'px';
+    beam.style.top = (midY - 65) + 'px';
+    beam.style.background = `linear-gradient(${fromRight ? 90 : 270}deg, transparent, hsla(${hue},90%,80%,0.55), transparent)`;
+    beam.style.setProperty('--sweep-dx', endDX + 'px');
+    overlay.appendChild(beam);
+
+    for(let k=0;k<16;k++){
+      const spark = document.createElement('div');
+      spark.className = 'nv-spark';
+      const y = midY + (Math.random()-0.5) * h * 0.55;
+      spark.style.left = startX + 'px';
+      spark.style.top = y + 'px';
+      spark.style.color = `hsl(${hue},95%,88%)`;
+      spark.style.background = `hsl(${hue},95%,88%)`;
+      spark.style.setProperty('--sweep-dx', (endDX + (Math.random()*80 - 40)) + 'px');
+      spark.style.animationDelay = (Math.random()*0.18) + 's';
+      overlay.appendChild(spark);
+    }
+    setTimeout(() => { overlay.innerHTML = ''; }, 950);
+  }
+
+  function transitionTo(i, dir){
+    const hue = hueFor(i);
+    const outX = dir === 1 ? '-70px' : '70px';
+    const outRot = dir === 1 ? '-9deg' : '9deg';
+    const inX = dir === 1 ? '70px' : '-70px';
+    const inRot = dir === 1 ? '9deg' : '-9deg';
+    detailContent.style.setProperty('--nav-out-x', outX);
+    detailContent.style.setProperty('--nav-out-rot', outRot);
+    detailContent.style.setProperty('--nav-in-x', inX);
+    detailContent.style.setProperty('--nav-in-rot', inRot);
+
+    triggerNavSweep(dir, hue);
+    layoutDetailFloatPhotos();
+
+    detailContent.classList.add('leaving');
+    setTimeout(() => {
+      renderDetail(i, dir);
+      detailContent.classList.remove('leaving');
+      detailContent.classList.add('entering');
+      setTimeout(()=> detailContent.classList.remove('entering'), 740);
+    }, 360);
+  }
+
+  btnNext.addEventListener('click', () => {
+    if(currentIndex < milestoneMeta.length-1){
+      transitionTo(currentIndex+1, 1);
+    } else {
+      goToView('gallery');
+    }
+  });
+  btnPrev.addEventListener('click', () => {
+    if(currentIndex > 0) transitionTo(currentIndex-1, -1);
+  });
+  document.getElementById('back-to-timeline').addEventListener('click', () => goToView('timeline'));
+  document.getElementById('back-to-detail-from-gallery').addEventListener('click', () => goToView('detail'));
+
+  /* ---------------- GRAND SWEET BURST ON OPEN ---------------- */
+  function triggerClickBurst(x, y, hue){
+    const overlay = document.getElementById('click-burst-overlay');
+    overlay.innerHTML = '';
+
+    const flash = document.createElement('div');
+    flash.className = 'cb-flash';
+    flash.style.left = x + 'px'; flash.style.top = y + 'px';
+    flash.style.background =
+      `radial-gradient(circle, #fff, hsla(${hue},95%,82%,0.65) 32%, hsla(${hue},85%,60%,0.28) 58%, transparent 78%)`;
+    overlay.appendChild(flash);
+
+    const ring = document.createElement('div');
+    ring.className = 'cb-ring';
+    ring.style.left = x + 'px'; ring.style.top = y + 'px';
+    ring.style.borderColor = `hsla(${hue},90%,85%,0.7)`;
+    overlay.appendChild(ring);
+
+    for(let k=0;k<24;k++){
+      const heart = document.createElement('div');
+      heart.className = 'cb-heart';
+      heart.textContent = '♥';
+      heart.style.left = x + 'px'; heart.style.top = y + 'px';
+      heart.style.fontSize = (12 + Math.random()*18) + 'px';
+      heart.style.color = `hsl(${hue + (Math.random()*30-15)},85%,${72 + Math.random()*14}%)`;
+      const angle = Math.random()*Math.PI*2;
+      const dist = 110 + Math.random()*280;
+      heart.style.setProperty('--dx', (Math.cos(angle)*dist) + 'px');
+      heart.style.setProperty('--dy', (Math.sin(angle)*dist - 70) + 'px'); // drift upward like sweet confetti
+      heart.style.setProperty('--rot', (Math.random()*170 - 85) + 'deg');
+      heart.style.animationDelay = (Math.random()*0.18) + 's';
+      overlay.appendChild(heart);
+    }
+
+    for(let k=0;k<28;k++){
+      const spark = document.createElement('div');
+      spark.className = 'cb-spark';
+      spark.style.left = x + 'px'; spark.style.top = y + 'px';
+      spark.style.background = `hsl(${hue},95%,90%)`;
+      spark.style.boxShadow = `0 0 8px 2px hsla(${hue},95%,85%,0.9)`;
+      const angle = Math.random()*Math.PI*2;
+      const dist = 60 + Math.random()*240;
+      spark.style.setProperty('--dx', (Math.cos(angle)*dist) + 'px');
+      spark.style.setProperty('--dy', (Math.sin(angle)*dist) + 'px');
+      spark.style.animationDelay = (Math.random()*0.12) + 's';
+      overlay.appendChild(spark);
+    }
+
+    setTimeout(() => { overlay.innerHTML = ''; }, 1500);
+  }
+
+  function openDetail(i, e){
+    const btnEl = e && e.currentTarget;
+    let originX = window.innerWidth/2, originY = window.innerHeight/2;
+    if(btnEl && btnEl.getBoundingClientRect){
+      const r = btnEl.getBoundingClientRect();
+      originX = r.left + r.width/2;
+      originY = r.top + r.height/2;
+    }
+    const hue = (btnEl && btnEl.dataset.hue) ? Number(btnEl.dataset.hue) : hueFor(i);
+
+    triggerClickBurst(originX, originY, hue);
+    layoutDetailFloatPhotos();
+
+    setTimeout(() => {
+      renderDetail(i, 0);
+      goToView('detail');
+    }, 520);
+  }
+
+  /* ---------------- VIEW SWITCHING ---------------- */
+  const views = {
+    galaxy: document.getElementById('view-galaxy'),
+    timeline: document.getElementById('view-timeline'),
+    detail: document.getElementById('view-detail'),
+    gallery: document.getElementById('view-gallery')
+  };
+  let galleryBuilt = false; // สร้างกริดวิดีโอหน้า 4 แบบ lazy ตอนเปิดจริงๆ ครั้งแรกเท่านั้น ไม่ใช่ตั้งแต่โหลดหน้าเว็บ
+
+  function goToView(name){
+    Object.entries(views).forEach(([key, v]) => {
+      if(key === name) return;
+      v.classList.remove('active');
+      // หยุดวิดีโอทุกตัวในหน้าที่ไม่ได้แสดงอยู่ กันไม่ให้เล่น/ถอดรหัสอยู่เบื้องหลังทั้งที่มองไม่เห็น
+      v.querySelectorAll('video').forEach(vid => { try{ vid.pause(); }catch(e){} });
+    });
+
+    if(name === 'gallery' && !galleryBuilt){
+      initGalleryClips(); // เพิ่งสร้าง element วิดีโอตอนเปิดหน้านี้จริงๆ เป็นครั้งแรก ไม่โหลดทิ้งไว้เฉยๆ ตั้งแต่ต้น
+      galleryBuilt = true;
+    }
+
+    views[name].classList.add('active');
+    views[name].querySelectorAll('video').forEach(vid => { vid.play().catch(()=>{}); });
+
+    if(name === 'galaxy' && rafId === null) animateGalaxy(); // สั่งลูปกาแล็คซี่ให้กลับมาเรนเดอร์ต่อ ถ้าเพิ่งถูกหยุดไปตอนออกจากหน้านี้
+  }
+
+  document.getElementById('view-galaxy').addEventListener('click', () => {
+    const flash = document.getElementById('transition-flash');
+    flash.classList.remove('flash');
+    void flash.offsetWidth; // restart animation
+    flash.classList.add('flash');
+    setTimeout(() => {
+      goToView('timeline');
+      playTimelineIntro();
+    }, 210);
+  });
+
+  /* ---------------- INIT ---------------- */
+  initGalaxy();
+  spawnGalaxyComets();
+  spawnHearts();
+  initFloatPhotos();
+  startPage1HeartsLoop();
+
+})();
+</script>
+</body>
+</html>
